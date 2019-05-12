@@ -69,34 +69,40 @@ function scatterplotMatrix(data) {
     .data(traits)
     .enter().append('g')
     .attr('class', 'x axis')
-    .attr('transform', function (d, i) { return 'translate(' + (n - i - 1) * SIZE + ',0)'; })
-    .each(function (d) { x.domain(domainByTrait[d]); select(this).call(xAxis); });
+    .attr('transform', (d, i) => 'translate(' + (n - i - 1) * SIZE + ',0)')
+    .each(d => {
+      x.domain(domainByTrait[d]);
+      select(this).call(xAxis);
+    });
 
   svg.selectAll('.y.axis')
     .data(traits)
     .enter().append('g')
     .attr('class', 'y axis')
-    .attr('transform', function (d, i) { return 'translate(0,' + i * SIZE + ')'; })
-    .each(function (d) { y.domain(domainByTrait[d]); select(this).call(yAxis); });
+    .attr('transform', (d, i) => 'translate(0,' + i * SIZE + ')')
+    .each(d => {
+      y.domain(domainByTrait[d]);
+      select(this).call(yAxis);
+    });
 
   const cell = svg.selectAll('.cell')
     .data(cross(traits, traits))
     .enter().append('g')
     .attr('class', 'cell')
-    .attr('transform', function (d) { return 'translate(' + (n - d.i - 1) * SIZE + ',' + d.j * SIZE + ')'; })
+    .attr('transform', d => 'translate(' + (n - d.i - 1) * SIZE + ',' + d.j * SIZE + ')')
     .each(plot);
 
   // Titles for the diagonal.
-  cell.filter(function (d) { return d.i === d.j; }).append('text')
+  cell.filter(d => d.i === d.j).append('text')
     .attr('x', PADDING)
     .attr('y', PADDING)
     .attr('dy', '.71em')
-    .text(function (d) { return d.x; });
+    .text(d => d.x);
 
   cell.call(brushFx);
 
   function plot(p) {
-    var cell = select(this);
+    const cell = select(this);
 
     x.domain(domainByTrait[p.x]);
     y.domain(domainByTrait[p.y]);
@@ -111,10 +117,10 @@ function scatterplotMatrix(data) {
     cell.selectAll('circle')
       .data(data)
       .enter().append('circle')
-      .attr('cx', function (d) { return x(d[p.x]); })
-      .attr('cy', function (d) { return y(d[p.y]); })
+      .attr('cx', d => x(d[p.x]))
+      .attr('cy', d => y(d[p.y]))
       .attr('r', 4)
-      .style('fill', function (d) { return color(d.species); });
+      .style('fill', d => color(d.species));
   }
 
   // Clear the previously-active brush, if any.
@@ -129,26 +135,26 @@ function scatterplotMatrix(data) {
 
   // Highlight the selected circles.
   function brushmove(p) {
-    var e = brushSelection(this);
-    svg.selectAll('circle').classed('hidden', function (d) {
-      return !e
-        ? false
-        : (
-          e[0][0] > x(+d[p.x]) || x(+d[p.x]) > e[1][0]
-          || e[0][1] > y(+d[p.y]) || y(+d[p.y]) > e[1][1]
-        );
-    });
+    const e = brushSelection(this);
+    svg.selectAll('circle').classed('hidden', d =>
+      e && (
+        e[0][0] > x(+d[p.x]) || x(+d[p.x]) > e[1][0]
+        || e[0][1] > y(+d[p.y]) || y(+d[p.y]) > e[1][1]
+      )
+    );
   }
 
   // If the brush is empty, select all circles.
   function brushend() {
-    var e = brushSelection(this);
+    const e = brushSelection(this);
     if (!e) svg.selectAll('.hidden').classed('hidden', false);
   }
 }
 
 function cross(a, b) {
-  var c = [], n = a.length, m = b.length, i, j;
-  for (i = -1; ++i < n;) for (j = -1; ++j < m;) c.push({ x: a[i], i: i, y: b[j], j: j });
+  const c = [], n = a.length, m = b.length;
+  let i, j;
+  for (i = -1; ++i < n;) for (j = -1; ++j < m;)
+    c.push({ x: a[i], i: i, y: b[j], j: j });
   return c;
 }
